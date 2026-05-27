@@ -3,6 +3,18 @@ set -e
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
+python manage.py shell -c "
+from pathlib import Path
+from django.conf import settings
+from django.db import connection
+
+sql_path = Path(settings.BASE_DIR) / 'init_db.sql'
+with sql_path.open(encoding='utf-8') as sql_file:
+    sql = sql_file.read()
+
+with connection.cursor() as cursor:
+    cursor.execute(sql)
+"
 
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
