@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "yarn", "caddy"]
+
+[phases.install]
+cmds = ["yarn install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["yarn build"]
+
+[start]
+cmd = "caddy file-server --root build --listen :${PORT}"

@@ -6,6 +6,12 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def env_list(name):
+    value = os.getenv(name, "")
+    return [item.strip().rstrip("/") for item in value.split(",") if item.strip()]
+
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "smart-library-local-secret")
 DEBUG = os.getenv("DEBUG", "1") == "1"
 ALLOWED_HOSTS = ["*"]
@@ -95,6 +101,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+CORS_ALLOWED_ORIGINS.extend(env_list("FRONTEND_ORIGIN"))
+CORS_ALLOWED_ORIGINS.extend(env_list("CORS_ALLOWED_ORIGINS"))
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.up\.railway\.app$",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -102,6 +113,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 if RAILWAY_PUBLIC_DOMAIN:
     CSRF_TRUSTED_ORIGINS.append(f"https://{RAILWAY_PUBLIC_DOMAIN}")
+CSRF_TRUSTED_ORIGINS.extend(env_list("FRONTEND_ORIGIN"))
+CSRF_TRUSTED_ORIGINS.extend(env_list("CSRF_TRUSTED_ORIGINS"))
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
