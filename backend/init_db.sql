@@ -139,11 +139,15 @@ ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO profiles (user_id, first_name, last_name, phone)
 SELECT user_id, 'Марія', 'Коваленко', '+380501112233' FROM users WHERE email = 'reader@example.com'
-ON CONFLICT DO NOTHING;
+AND NOT EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.user_id = users.user_id
+);
 
 INSERT INTO profiles (user_id, first_name, last_name, phone)
 SELECT user_id, 'Олег', 'Бібліотекар', '+380501114455' FROM users WHERE email = 'librarian@example.com'
-ON CONFLICT DO NOTHING;
+AND NOT EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.user_id = users.user_id
+);
 
 INSERT INTO ratings (user_id, book_id, value)
 SELECT u.user_id, b.book_id, seed.value

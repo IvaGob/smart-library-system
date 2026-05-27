@@ -21,7 +21,28 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from library.models import Profile
 from library.models import User as LibraryUser
+
 User = get_user_model()
+
+def ensure_profile(user_id, first_name, last_name, phone):
+    profiles = list(Profile.objects.filter(user_id=user_id).order_by('profile_id'))
+    if profiles:
+        profile = profiles[0]
+        profile.first_name = first_name
+        profile.last_name = last_name
+        profile.phone = phone
+        profile.save(update_fields=['first_name', 'last_name', 'phone'])
+        duplicate_ids = [duplicate.profile_id for duplicate in profiles[1:]]
+        if duplicate_ids:
+            Profile.objects.filter(profile_id__in=duplicate_ids).delete()
+        return profile
+    return Profile.objects.create(
+        user_id=user_id,
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+    )
+
 username = 'admin'
 email = 'admin@example.com'
 password = 'admin12345'
@@ -37,10 +58,7 @@ if not created:
     library_user.role = 'admin'
     library_user.save(update_fields=['password_hash', 'role'])
 
-Profile.objects.get_or_create(
-    user_id=library_user.user_id,
-    defaults={'first_name': 'Адміністратор', 'last_name': 'Системи', 'phone': '+380501110000'},
-)
+ensure_profile(library_user.user_id, 'Адміністратор', 'Системи', '+380501110000')
 
 demo_users = [
     ('reader@example.com', 'reader12345', 'reader', 'Марія', 'Коваленко', '+380501112233'),
@@ -55,10 +73,7 @@ for demo_email, demo_password, role, first_name, last_name, phone in demo_users:
         demo_user.password_hash = make_password(demo_password)
         demo_user.role = role
         demo_user.save(update_fields=['password_hash', 'role'])
-    Profile.objects.get_or_create(
-        user_id=demo_user.user_id,
-        defaults={'first_name': first_name, 'last_name': last_name, 'phone': phone},
-    )
+    ensure_profile(demo_user.user_id, first_name, last_name, phone)
 "
 
 gunicorn smart_library.wsgi:application --bind "0.0.0.0:${PORT:-8000}"
