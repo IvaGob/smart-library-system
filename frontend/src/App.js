@@ -20,7 +20,11 @@ import {
   UserPlus
 } from "lucide-react";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8000";
+const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  (window.location.hostname.endsWith(".up.railway.app")
+    ? "https://smart-library-system-production-8066.up.railway.app"
+    : "http://localhost:8000");
 const MODEL_ERROR_THRESHOLDS = {
   warningRmse: 1.0,
   criticalRmse: 1.5,
