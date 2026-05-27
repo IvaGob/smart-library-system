@@ -49,4 +49,4 @@ for demo_email, demo_password, role, first_name, last_name, phone in demo_users:
     )
 "
 
-gunicorn smart_library.wsgi:application --bind 0.0.0.0:8000
+gunicorn smart_library.wsgi:application --bind "0.0.0.0:${PORT:-8000}"
