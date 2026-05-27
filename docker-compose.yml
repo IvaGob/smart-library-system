@@ -1,0 +1,48 @@
+name: smartlibraryai
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smartlibrary_db
+    environment:
+      POSTGRES_DB: smart_library_db
+      POSTGRES_USER: library_admin
+      POSTGRES_PASSWORD: secure_db_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library_admin -d smart_library_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartlibrary_backend
+    environment:
+      DJANGO_SECRET_KEY: smart-library-dev-secret-change-me
+      DEBUG: "1"
+      DB_NAME: smart_library_db
+      DB_USER: library_admin
+      DB_PASSWORD: secure_db_password_2026
+      DB_HOST: db
+      DB_PORT: "5432"
+      GEMINI_API_KEY: ""
+      GEMINI_MODEL: gemini-2.5-flash-preview-09-2025
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+
+volumes:
+  pgdata:
+  media_volume:
